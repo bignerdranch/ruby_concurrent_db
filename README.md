@@ -12,19 +12,13 @@ This is a short description of your app.
 ### Setup
 
 ```sh
-$ bin/bootstrap
-```
-
-### Testing
-
-```sh
-$ bin/rspec
+$ bin/rails db:create db:migrate db:seed
 ```
 
 ### Running
 
 ```sh
-$ bin/rails server
+$ bin/rails profile
 ```
 
 [postgres-app]: http://postgresapp.com
