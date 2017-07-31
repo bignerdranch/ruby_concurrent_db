@@ -10,6 +10,9 @@ Blob.delete_all
 10.times do |company_n|
   company = (10000+company_n).to_s
   10_000.times do |blob_n|
-    Blob.create(company: company, blob: {name: "Blob #{blob_n}"})
+    Blob.create(company: company, blob: {
+      name: "Blob #{blob_n}",
+      number: Random::rand(100),
+    })
   end
 end
