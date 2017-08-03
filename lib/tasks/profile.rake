@@ -1,13 +1,5 @@
-desc 'Profile the performance of multiple database requests'
-task profile: [:environment] do
-
-  puts 'running benchmarks...'
-
-  work = ->(company_id) {
-    query = "SELECT pg_sleep(1)"
-    # query = "SELECT SUM((blob->>'number')::int) FROM blobs WHERE company = '#{company_id}'"
-    ActiveRecord::Base.connection.execute(query)
-  }
+def profile(&work)
+  company_ids = ["10000", "10003", "10008", "10004", "10002", "10006", "10009", "10001", "10007", "10005"]
 
   concurrent = ->(company_ids) {
     threads = company_ids.map do |company_id|
@@ -25,9 +17,7 @@ task profile: [:environment] do
   }
 
   Benchmark.bm do |x|
-    # company_ids = Blob.distinct.pluck(:company)
-    company_ids = ["10000", "10003", "10008", "10004", "10002", "10006", "10009", "10001", "10007", "10005"]
-
+    # pre-run each sequence in case it
     sequential.call(company_ids)
     concurrent.call(company_ids)
 
@@ -37,6 +27,30 @@ task profile: [:environment] do
 
     x.report("concurrent") do
       concurrent.call(company_ids)
+    end
+  end
+end
+
+namespace :profile do
+  desc 'Profile the performance of threads running the Ruby sleep command'
+  task :rubysleep do
+    profile { sleep(1) }
+  end
+
+  desc 'Profile the performance of threads running a PG query with the pg_sleep command'
+  task pgsleep: [:environment] do
+    profile do |company_id|
+      query = 'SELECT pg_sleep(1)'
+      ActiveRecord::Base.connection.execute(query)
+    end
+  end
+
+  desc 'Profile the performance of multiple long-running database requests'
+  task pgquery: [:environment] do
+
+    profile do |company_id|
+      query = "SELECT SUM((blob->>'number')::int) FROM blobs WHERE company = '#{company_id}'"
+      ActiveRecord::Base.connection.execute(query)
     end
   end
 end
